@@ -46,8 +46,6 @@ public sealed class FaunaClient
 
         using ( var response = await httpClient.SendAsync( request ) )
         {
-            response.EnsureSuccessStatusCode();
-
             var queryResponse = await response.Content.ReadAsJsonAsync<QueryResponse>();
 
             if ( queryResponse == null )
@@ -61,8 +59,7 @@ public sealed class FaunaClient
             This handles scenarios where the data is a collection of
             documents or a single document.
             */
-            byte[] data = queryResponse.Data?.SerializeToUtf8Bytes()
-                ?? Array.Empty<byte>();
+            byte[]? data = queryResponse.Data?.SerializeToUtf8Bytes();
 
             // return a generic response with the binary data
             return new FaunaResponse
@@ -71,7 +68,7 @@ public sealed class FaunaClient
                 Summary = queryResponse.Summary,
                 Timestamp = DateTime.UnixEpoch.AddTicks( queryResponse.Timestamp * 10 ),
                 Stats = ( queryResponse.Stats != null )
-                    ? new FaunaStats
+                    ? new QueryStats
                     {
                         ComputeOps = queryResponse.Stats.ComputeOps,
                         ReadOps = queryResponse.Stats.ReadOps,
@@ -82,7 +79,22 @@ public sealed class FaunaClient
                         StorageBytesWrite = queryResponse.Stats.StorageBytesWrite
                     }
                     : null,
-                SchemaVersion = queryResponse.SchemaVersion
+                SchemaVersion = queryResponse.SchemaVersion,
+                Error = ( queryResponse.Error != null )
+                ? new QueryError
+                {
+                    Code = queryResponse.Error.Code,
+                    Message = queryResponse.Error.Message,
+                    ConstraintFailures = queryResponse.Error.ConstraintFailures
+                        ?.Select( x => new ConstraintFailure
+                        {
+                            Name = x.Name,
+                            Message = x.Message,
+                            Paths = x.Paths
+                        } )
+                        .ToArray()
+                }
+                : null
             };
         }
     }
@@ -91,15 +103,35 @@ public sealed class FaunaClient
     /// Executes a query written in FQL over the FaunaDB API and deserializes the response data to the specified type.
     /// <returns>Returns the deserialized response data</returns>
     /// </summary>
-    public async Task<T?> QueryAsync<T>( string query, JsonSerializerOptions? options = null )
+    public async Task<T?> QueryAsync<T>( string query, JsonSerializerOptions? jsonOptions = null )
     {
         var response = await QueryAsync( query );
 
-        if ( !response.Data.Any() )
+        response.ThrowIfFailure();
+
+        if ( !( response.Data?.Any() == true ) )
         {
-            return default!;
+            return default;
         }
 
-        return JsonSerializer.Deserialize<T>( response.Data, options );
+        // return page T is Page<T>
+        if ( typeof( T ).IsGenericType && typeof( T ).GetGenericTypeDefinition() == typeof( Page<> ) )
+        {
+            // get the generic type of Page<T>
+            var genericType = typeof( T ).GetGenericArguments()[0];
+
+            var page = response.ToPage( genericType, jsonOptions );
+
+            return (T?)page;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<T>( response.Data, jsonOptions );
+        }
+        catch
+        {
+            return default;
+        }
     }
 }

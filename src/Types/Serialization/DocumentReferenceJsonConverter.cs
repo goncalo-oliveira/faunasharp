@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace FaunaDB.Serialization;
 
-public sealed class DocumentReferenceJsonConverter : JsonConverter<DocumentReference>
+internal sealed class DocumentReferenceJsonConverter : JsonConverter<DocumentReference>
 {
     public override DocumentReference? Read( ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options )
     {

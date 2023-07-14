@@ -54,7 +54,7 @@ The example above returns a generic `FaunaResponse` instance, which does not des
 
 This is by design, as the client does not want to make any assumptions on how to deserialize the data contents. Therefore, the `data` property is left as a byte array with the binary content, which you can deserialize yourself.
 
-If you know the type of the data you're expecting, you can use the `QueryAsync<T>` method, which will deserialize the data for you using the provided type.
+If you know the type of the data you're expecting, you can use the generic method instead, which will deserialize the data for you using the provided type.
 
 ```csharp
 IEnumerable<CoffeeBean> coffeeBeans = await client.QueryAsync<IEnumerable<CoffeeBean>>(
@@ -63,3 +63,46 @@ IEnumerable<CoffeeBean> coffeeBeans = await client.QueryAsync<IEnumerable<Coffee
 ```
 
 The only downside of this approach is that you lose the additional information that the `FaunaResponse` object provides, such as the query's stats.
+
+## Pagination
+
+Results that are paginated are returned inside a page structure, containing the data and a reference to the next page. This needs to be considered when deserializing the data.
+
+```yaml
+CoffeeBean.all().paginate(10)
+---
+{
+  data: [...],
+  after: "9JHMp2IWi0Ph/rHhjWO8RA=="
+}
+```
+
+If we know the results are paginated, we can use the `ToPage()` extension methods to deserialize the page.
+
+```csharp
+FaunaResponse response = await client.QueryAsync( "CoffeeBean.all().paginate(10)" );
+
+Page page = response.ToPage();
+```
+
+As with `FaunaResponse`, the `Page` does not deserialize the data contents, since the client does not want to make any assumptions on how to do this. The `data` property is left as a byte array with the binary content, which you can deserialize yourself.
+
+If you know the type of the data you're expecting, you can use the generic method instead, which will deserialize the data for you using the provided type.
+
+```csharp
+Page<CoffeeBean> page = response.ToPage<CoffeeBean>();
+
+// page.Data is an IEnumerable<CoffeeBean>
+```
+
+If you do not need the other information that the `FaunaResponse` provides (such as the query's stats) and you are only interested in the data, you can use these types with the generic method.
+
+```csharp
+// a page containing the data as a byte array
+Page page = await client.QueryAsync<Page>( "CoffeeBean.all().paginate(10)" );
+
+// a page containing the data as an IEnumerable<CoffeeBean>
+Page<CoffeeBean> typedPage = await client.QueryAsync<Page<CoffeeBean>>(
+    "CoffeeBean.all().paginate(10)"
+);
+```

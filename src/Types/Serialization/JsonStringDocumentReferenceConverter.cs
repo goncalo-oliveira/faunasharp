@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace FaunaDB.Serialization;
 
+/// <summary>
+/// Converts a document reference to and from a string in the format of "collection/id".
+/// </summary>
 public sealed class JsonStringDocumentReferenceConverter : JsonConverter<DocumentReference>
 {
     public override DocumentReference? Read( ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options )
