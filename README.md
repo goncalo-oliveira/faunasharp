@@ -6,6 +6,12 @@ This is an experimental FaunaDB client for .NET. It allows to directly use FQL q
 
 ## Usage
 
+The client is available as a NuGet package. Since it's still in an experimental stage, it's only available as a pre-release package. You can install it using the following command
+
+```bash
+dotnet add package FaunaDB.MinimalClient --prerelease
+```
+
 To use the client, you need to create a `FaunaClient` instance and pass it an `HttpClient` instance. The `HttpClient` instance should have the `Authorization` header pre-populated in the default headers, with your FaunaDB API key.
 
 If you're using dependency injection, it's recommended to build the `HttpClient` instances using the `IHttpClientFactory` interface.
