@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <AssemblyName>faunadb.client</AssemblyName>
+    <RootNamespace>FaunaDB</RootNamespace>
+    <PackageId>FaunaDB.MinimalClient</PackageId>
+    <Version>0.1.0-preview-1</Version>
+    <Authors>Goncalo Oliveira</Authors>
+    <Description>FaunaDB Client</Description>
+    <RepositoryUrl>https://github.com/goncalo-oliveira/faunasharp</RepositoryUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>
