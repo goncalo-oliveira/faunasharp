@@ -1,9 +1,10 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 internal sealed class QueryResponse
 {
     [JsonPropertyName( "data" )]
-    public Dictionary<string, object>? Data { get; set; }
+    public JsonElement? Data { get; set; }
 
     [JsonPropertyName( "summary" )]
     public string? Summary { get; set; }

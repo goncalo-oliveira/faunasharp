@@ -46,6 +46,10 @@ public sealed class FaunaClient
 
         using ( var response = await httpClient.SendAsync( request ) )
         {
+            // if response data is "true" it can't be serialized to
+            // a dictionary<string, object> ....
+            // think we might need to use a JsonElement or something...
+
             var queryResponse = await response.Content.ReadAsJsonAsync<QueryResponse>();
 
             if ( queryResponse == null )
@@ -57,7 +61,7 @@ public sealed class FaunaClient
             We don't want to make assumptions on the data returned
             so we just serialize the data back as a byte array
             This handles scenarios where the data is a collection of
-            documents or a single document.
+            documents, a page, a single document or a value.
             */
             byte[]? data = queryResponse.Data?.SerializeToUtf8Bytes();
 
