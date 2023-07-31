@@ -129,6 +129,23 @@ public sealed class FaunaClient
             return (T?)page;
         }
 
+        // return type is an IEnumerable
+        if ( typeof( T ).IsGenericType && typeof( T ).GetGenericTypeDefinition() == typeof( IEnumerable<> ) )
+        {
+            // the contents for lists are inside the data.data property
+            JsonElement obj = JsonSerializer.Deserialize<JsonElement>( response.Data );
+
+            if ( !obj.TryGetProperty( "data", out JsonElement data ) )
+            {
+                // no data property found
+                return default;
+            }
+
+            // deserialize the data property to the generic type
+            return data.Deserialize<T>( jsonOptions );
+        }
+
+        // return type is a single object; deserialize the data directly
         try
         {
             return JsonSerializer.Deserialize<T>( response.Data, jsonOptions );

@@ -8,7 +8,7 @@
     <AssemblyName>faunadb.client</AssemblyName>
     <RootNamespace>FaunaDB</RootNamespace>
     <PackageId>FaunaDB.MinimalClient</PackageId>
-    <Version>0.1.0-preview-8</Version>
+    <Version>0.1.0-preview-12</Version>
     <Authors>Goncalo Oliveira</Authors>
     <Description>FaunaDB Client</Description>
     <RepositoryUrl>https://github.com/goncalo-oliveira/faunasharp</RepositoryUrl>

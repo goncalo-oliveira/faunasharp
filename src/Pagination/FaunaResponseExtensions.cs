@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,14 +16,34 @@ public static class FaunaResponsePaginationExtensions
             throw new ArgumentNullException( nameof( response.Data ) );
         }
 
-        var page = JsonSerializer.Deserialize<PrivatePage>( response.Data );
+        // the contents are inside the data property
+        JsonElement obj = JsonSerializer.Deserialize<JsonElement>( response.Data );
 
-        if ( page == null )
+        if ( !obj.TryGetProperty( "data", out JsonElement data ) )
         {
-            return ( null );
+            // no data property found
+            return default;
         }
 
-        return ( new Page( page.Data, page.After ) );
+        byte[]? bytes = Array.Empty<byte>();
+        //byte[]? bytes = data.SerializeToUtf8Bytes();
+        if ( data.ValueKind == JsonValueKind.String )
+        {
+            bytes = Convert.FromBase64String( data.GetString()! );
+        }
+        else
+        {
+            bytes = data.SerializeToUtf8Bytes();
+        }
+
+        // retrieve after token
+        string? after = null;
+        if ( obj.TryGetProperty( "after", out JsonElement afterElement ))
+        {
+            after = afterElement.GetString();
+        }
+
+        return new Page( bytes, after );
     }
 
     /// <summary>
